@@ -30,7 +30,7 @@ export default async function handler(req, res) {
           contents: [{
             parts: [
               {
-                text: 'Analyze this selfie and generate a flattering, motivating compliment based on visual features like facial expression, lighting, or background. Keep it brief and positive, focusing on one or two noticeable features. Make the person feel good about themselves!'
+                text: 'Analyze this selfie. Based on this, generate a one-paragraph, daily-horoscope-style message that feels personal, uplifting, and emotionally intelligent. Observe and gently interpret the expression of the person, clothing, lighting, and mood - and respond with a feel-good reflection. Start with a warm compliment, suggest what kind of energy or emotion they radiate today, hint at one or two light, joyful moments they might experience, and end with an encouraging suggestion (like showing kindness, smiling more, or embracing the day). Always stay positive, poetic, and emotionally soothing - never generic or templated. Respond purely based on the selfie - dont ask questions or offer advice.'
               },
               {
                 inlineData: {
