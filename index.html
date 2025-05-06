@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Selfie Compliment App</title>
+    <title>Selfie Fortune Teller</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4CAF50">
     <style>
@@ -224,7 +224,7 @@
         </div>
     </div>
 
-    <h1>Selfie Compliment App</h1>
+    <h1>Selfie Fortune Teller</h1>
     
     <div class="container">
         <div id="preview-container">
@@ -237,7 +237,7 @@
                 <span>Take Selfie</span>
             </button>
             <button id="analyze-btn" class="button" disabled>
-                <span>Happy Morning</span>
+                <span>How's My Day</span>
             </button>
         </div>
         
@@ -270,7 +270,7 @@
         // Check for service worker support and register
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
+                navigator.serviceWorker.register('/service-worker.js')
                     .then(registration => {
                         console.log('ServiceWorker registration successful');
                     })
@@ -319,7 +319,7 @@
                     analyzeBtn.disabled = false;
                     
                     // Reset message
-                    messageDiv.textContent = 'Looking good! Click "Happy Morning".';
+                    messageDiv.textContent = 'Looking good! Click "How\'s My Day".';
                 } catch (error) {
                     messageDiv.textContent = `Error loading image: ${error.message}`;
                 }

@@ -1,7 +1,7 @@
 {
   "name": "selfie-compliment-app",
   "version": "1.0.0",
-  "description": "Web app that takes a selfie and generates a compliment",
+  "description": "A selfie and generates a daily fortune",
   "main": "index.html",
   "scripts": {
     "start": "vercel dev",
