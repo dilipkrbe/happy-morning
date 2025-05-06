@@ -126,6 +126,10 @@
             margin-top: 10px;
         }
         
+        #message-container {
+            position: relative;
+        }
+        
         #message {
             font-size: 18px;
             line-height: 1.6;
@@ -138,6 +142,33 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        
+        #save-button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+        
+        #save-button:hover {
+            opacity: 1;
+        }
+        
+        #save-button svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--primary-color);
         }
         
         .loading {
@@ -247,6 +278,11 @@
     
     <div id="message-container">
         <div id="message">Take a selfie!</div>
+        <button id="save-button" class="hidden" title="Save this fortune">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+            </svg>
+        </button>
     </div>
 
     <script>
@@ -259,6 +295,7 @@
         const captureBtn = document.getElementById('capture-btn');
         const analyzeBtn = document.getElementById('analyze-btn');
         const messageDiv = document.getElementById('message');
+        const saveButton = document.getElementById('save-button');
         const consentModal = document.getElementById('consent-modal');
         const consentAgreeBtn = document.getElementById('consent-agree');
         const consentDisagreeBtn = document.getElementById('consent-disagree');
@@ -266,6 +303,7 @@
         // Global variables
         let userConsent = false;
         let currentImageData = null;
+        let currentFortune = null;
         
         // Check for service worker support and register
         if ('serviceWorker' in navigator) {
@@ -318,8 +356,9 @@
                     placeholderText.classList.add('hidden');
                     analyzeBtn.disabled = false;
                     
-                    // Reset message
+                    // Reset message and hide save button
                     messageDiv.textContent = 'Looking good! Click "How\'s My Day".';
+                    saveButton.classList.add('hidden');
                 } catch (error) {
                     messageDiv.textContent = `Error loading image: ${error.message}`;
                 }
@@ -368,9 +407,16 @@
                     // Get base64 data
                     const imageData = canvas.toDataURL('image/jpeg', 0.8);
                     
+                    // Store the current image data for saving later
+                    currentImageData = imageData;
+                    
                     // Send to API
                     const compliment = await analyzeSelfie(imageData);
                     messageDiv.textContent = compliment;
+                    currentFortune = compliment;
+                    
+                    // Show save button
+                    saveButton.classList.remove('hidden');
                 };
             } catch (error) {
                 messageDiv.textContent = `Error processing image: ${error.message}`;
@@ -407,6 +453,88 @@
                 return 'Unable to generate right now. But trust me, you look marvelous!';
             }
         }
+        
+        // Save fortune functionality
+        saveButton.addEventListener('click', async () => {
+            if (!currentImageData || !currentFortune) {
+                return;
+            }
+            
+            try {
+                // Create a hidden canvas to combine the image and text
+                const exportCanvas = document.createElement('canvas');
+                const ctx = exportCanvas.getContext('2d');
+                
+                // Load the image
+                const img = new Image();
+                img.src = currentImageData;
+                
+                await new Promise((resolve) => {
+                    img.onload = resolve;
+                });
+                
+                // Set canvas dimensions
+                const padding = 30;
+                const textHeight = 150; // Approximate height for text
+                exportCanvas.width = img.width;
+                exportCanvas.height = img.height + textHeight + padding * 2;
+                
+                // Fill canvas with white background
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+                
+                // Draw the image
+                ctx.drawImage(img, 0, 0);
+                
+                // Add the fortune text
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#333333';
+                ctx.textAlign = 'center';
+                
+                // Word wrap the text
+                const maxWidth = exportCanvas.width - padding * 2;
+                const words = currentFortune.split(' ');
+                let line = '';
+                let y = img.height + padding;
+                
+                for (let i = 0; i < words.length; i++) {
+                    const testLine = line + words[i] + ' ';
+                    const metrics = ctx.measureText(testLine);
+                    
+                    if (metrics.width > maxWidth && i > 0) {
+                        ctx.fillText(line, exportCanvas.width / 2, y);
+                        line = words[i] + ' ';
+                        y += 22; // Line height
+                    } else {
+                        line = testLine;
+                    }
+                }
+                ctx.fillText(line, exportCanvas.width / 2, y);
+                
+                // Add timestamp at the bottom
+                const now = new Date();
+                const timestamp = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+                ctx.font = '12px Arial';
+                ctx.fillStyle = '#999999';
+                ctx.fillText(timestamp, exportCanvas.width / 2, exportCanvas.height - padding);
+                
+                // Convert to blob and download
+                exportCanvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `selfie-fortune-${now.getTime()}.png`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 'image/png');
+                
+            } catch (error) {
+                console.error('Error saving fortune:', error);
+                messageDiv.textContent = `${currentFortune}\n\n(Error saving: ${error.message})`;
+            }
+        });
     </script>
 </body>
 </html>
