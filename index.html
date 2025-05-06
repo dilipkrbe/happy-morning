@@ -6,6 +6,7 @@
     <title>Selfie Fortune Teller</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4CAF50">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Lora:ital@0;1&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-color: #4CAF50;
@@ -13,10 +14,12 @@
             --background-color: #f5f5f5;
             --text-color: #333333;
             --accent-color: #FF9800;
+            --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --border-radius: 15px;
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Montserrat', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -33,6 +36,7 @@
             color: var(--primary-color);
             margin-bottom: 20px;
             text-align: center;
+            font-weight: 600;
         }
         
         .container {
@@ -42,8 +46,8 @@
             flex-direction: column;
             align-items: center;
             background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
             padding: 20px;
             margin-bottom: 20px;
         }
@@ -124,50 +128,54 @@
             width: 100%;
             max-width: 500px;
             margin-top: 10px;
-        }
-        
-        #message-container {
             position: relative;
         }
         
         #message {
+            font-family: 'Lora', serif;
             font-size: 18px;
             line-height: 1.6;
             text-align: center;
             padding: 20px;
             background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
             min-height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         
-        #save-button {
+        .action-buttons {
             position: absolute;
             bottom: 10px;
             right: 10px;
-            width: 30px;
-            height: 30px;
+            display: flex;
+            gap: 8px;
+        }
+        
+        .icon-button {
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.8);
+            background-color: rgba(255, 255, 255, 0.9);
             border: 1px solid #e0e0e0;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            opacity: 0.6;
-            transition: opacity 0.3s;
+            opacity: 0.8;
+            transition: opacity 0.3s, transform 0.2s;
         }
         
-        #save-button:hover {
+        .icon-button:hover {
             opacity: 1;
+            transform: scale(1.05);
         }
         
-        #save-button svg {
-            width: 16px;
-            height: 16px;
+        .icon-button svg {
+            width: 18px;
+            height: 18px;
             fill: var(--primary-color);
         }
         
@@ -194,7 +202,7 @@
             }
         }
         
-        .consent-modal {
+        .consent-modal, .share-modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -207,19 +215,78 @@
             z-index: 1000;
         }
         
-        .consent-content {
+        .modal-content {
             background-color: white;
             padding: 30px;
-            border-radius: 15px;
+            border-radius: var(--border-radius);
             max-width: 500px;
             width: 90%;
         }
         
-        .consent-buttons {
+        .modal-title {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+        
+        .modal-buttons {
             display: flex;
             justify-content: center;
             gap: 15px;
             margin-top: 20px;
+        }
+        
+        .share-options {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .share-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 70px;
+        }
+        
+        .share-option:hover {
+            transform: scale(1.05);
+        }
+        
+        .share-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .share-icon svg {
+            width: 30px;
+            height: 30px;
+            fill: white;
+        }
+        
+        .share-label {
+            font-size: 12px;
+            text-align: center;
+        }
+        
+        .whatsapp-icon {
+            background-color: #25D366;
+        }
+        
+        .twitter-icon {
+            background-color: #1DA1F2;
+        }
+        
+        .instagram-icon {
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
         }
         
         .hidden {
@@ -236,21 +303,66 @@
                 font-size: 16px;
                 padding: 15px;
             }
+            
+            .share-options {
+                gap: 10px;
+            }
+            
+            .share-option {
+                width: 60px;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Consent Modal -->
     <div id="consent-modal" class="consent-modal">
-        <div class="consent-content">
-            <h2>Privacy Notice</h2>
+        <div class="modal-content">
+            <h2 class="modal-title">Privacy Notice</h2>
             <p>This app uses Google's Gemini API.</p>
             <p>Your image will be sent to Google's servers for processing. While we don't store your images, 
                Google may use data from the free tier to improve their models.</p>
             <p>By clicking "I Agree", you consent to this processing.</p>
-            <div class="consent-buttons">
+            <div class="modal-buttons">
                 <button id="consent-agree" class="button">I Agree</button>
                 <button id="consent-disagree" class="button button-secondary">No Thanks</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="share-modal" class="share-modal hidden">
+        <div class="modal-content">
+            <h2 class="modal-title">Share Your Fortune</h2>
+            <p>Choose how you'd like to share your fortune:</p>
+            <div class="share-options">
+                <div class="share-option" id="share-whatsapp">
+                    <div class="share-icon whatsapp-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                    </div>
+                    <span class="share-label">WhatsApp</span>
+                </div>
+                <div class="share-option" id="share-twitter">
+                    <div class="share-icon twitter-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                        </svg>
+                    </div>
+                    <span class="share-label">Twitter</span>
+                </div>
+                <div class="share-option" id="share-instagram">
+                    <div class="share-icon instagram-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+                        </svg>
+                    </div>
+                    <span class="share-label">Instagram</span>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button id="share-close" class="button button-secondary">Close</button>
             </div>
         </div>
     </div>
@@ -278,11 +390,18 @@
     
     <div id="message-container">
         <div id="message">Take a selfie!</div>
-        <button id="save-button" class="hidden" title="Save this fortune">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-            </svg>
-        </button>
+        <div class="action-buttons hidden" id="action-buttons">
+            <button id="share-button" class="icon-button" title="Share this fortune">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/>
+                </svg>
+            </button>
+            <button id="save-button" class="icon-button" title="Save this fortune">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                </svg>
+            </button>
+        </div>
     </div>
 
     <script>
@@ -296,14 +415,22 @@
         const analyzeBtn = document.getElementById('analyze-btn');
         const messageDiv = document.getElementById('message');
         const saveButton = document.getElementById('save-button');
+        const shareButton = document.getElementById('share-button');
+        const actionButtons = document.getElementById('action-buttons');
         const consentModal = document.getElementById('consent-modal');
         const consentAgreeBtn = document.getElementById('consent-agree');
         const consentDisagreeBtn = document.getElementById('consent-disagree');
+        const shareModal = document.getElementById('share-modal');
+        const shareWhatsapp = document.getElementById('share-whatsapp');
+        const shareTwitter = document.getElementById('share-twitter');
+        const shareInstagram = document.getElementById('share-instagram');
+        const shareClose = document.getElementById('share-close');
         
         // Global variables
         let userConsent = false;
         let currentImageData = null;
         let currentFortune = null;
+        let fortuneImageBlob = null;
         
         // Check for service worker support and register
         if ('serviceWorker' in navigator) {
@@ -356,9 +483,9 @@
                     placeholderText.classList.add('hidden');
                     analyzeBtn.disabled = false;
                     
-                    // Reset message and hide save button
+                    // Reset message and hide action buttons
                     messageDiv.textContent = 'Looking good! Click "How\'s My Day".';
-                    saveButton.classList.add('hidden');
+                    actionButtons.classList.add('hidden');
                 } catch (error) {
                     messageDiv.textContent = `Error loading image: ${error.message}`;
                 }
@@ -411,12 +538,15 @@
                     currentImageData = imageData;
                     
                     // Send to API
-                    const compliment = await analyzeSelfie(imageData);
-                    messageDiv.textContent = compliment;
-                    currentFortune = compliment;
+                    const fortune = await analyzeSelfie(imageData);
+                    messageDiv.textContent = fortune;
+                    currentFortune = fortune;
                     
-                    // Show save button
-                    saveButton.classList.remove('hidden');
+                    // Generate the fortune image
+                    generateFortuneImage();
+                    
+                    // Show action buttons
+                    actionButtons.classList.remove('hidden');
                 };
             } catch (error) {
                 messageDiv.textContent = `Error processing image: ${error.message}`;
@@ -454,14 +584,14 @@
             }
         }
         
-        // Save fortune functionality
-        saveButton.addEventListener('click', async () => {
+        // Generate fortune image with better design
+        async function generateFortuneImage() {
             if (!currentImageData || !currentFortune) {
-                return;
+                return null;
             }
             
             try {
-                // Create a hidden canvas to combine the image and text
+                // Create a hidden canvas for the fortune card
                 const exportCanvas = document.createElement('canvas');
                 const ctx = exportCanvas.getContext('2d');
                 
@@ -473,68 +603,215 @@
                     img.onload = resolve;
                 });
                 
-                // Set canvas dimensions
+                // Set canvas dimensions with consistent proportions
+                const cardWidth = Math.max(img.width, 500);
+                const imageHeight = img.height;
                 const padding = 30;
-                const textHeight = 150; // Approximate height for text
-                exportCanvas.width = img.width;
-                exportCanvas.height = img.height + textHeight + padding * 2;
+                const borderWidth = 3;
+                const textAreaHeight = 180;
+                const totalHeight = imageHeight + textAreaHeight + padding * 3;
+                
+                exportCanvas.width = cardWidth;
+                exportCanvas.height = totalHeight;
                 
                 // Fill canvas with white background
                 ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+                ctx.fillRect(0, 0, cardWidth, totalHeight);
                 
-                // Draw the image
-                ctx.drawImage(img, 0, 0);
+                // Draw a subtle border
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = borderWidth;
+                ctx.strokeRect(borderWidth/2, borderWidth/2, cardWidth - borderWidth, totalHeight - borderWidth);
                 
-                // Add the fortune text
-                ctx.font = '16px Arial';
+                // Draw image with proper centering
+                const imageX = (cardWidth - img.width) / 2;
+                ctx.drawImage(img, imageX, padding, img.width, img.height);
+                
+                // Add a subtle divider
+                const dividerY = padding + imageHeight + padding/2;
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.beginPath();
+                ctx.moveTo(padding, dividerY);
+                ctx.lineTo(cardWidth - padding, dividerY);
+                ctx.stroke();
+                
+                // Configure text styling
                 ctx.fillStyle = '#333333';
                 ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // Draw the fortune text
+                const textY = dividerY + padding + textAreaHeight/2;
+                
+                // Add fortune text with improved typography
+                ctx.font = '600 22px Montserrat, sans-serif';
                 
                 // Word wrap the text
-                const maxWidth = exportCanvas.width - padding * 2;
-                const words = currentFortune.split(' ');
-                let line = '';
-                let y = img.height + padding;
-                
-                for (let i = 0; i < words.length; i++) {
-                    const testLine = line + words[i] + ' ';
-                    const metrics = ctx.measureText(testLine);
-                    
-                    if (metrics.width > maxWidth && i > 0) {
-                        ctx.fillText(line, exportCanvas.width / 2, y);
-                        line = words[i] + ' ';
-                        y += 22; // Line height
-                    } else {
-                        line = testLine;
-                    }
-                }
-                ctx.fillText(line, exportCanvas.width / 2, y);
+                const maxWidth = cardWidth - padding * 3;
+                wrapText(ctx, currentFortune, cardWidth/2, textY - 20, maxWidth, 28);
                 
                 // Add timestamp at the bottom
                 const now = new Date();
                 const timestamp = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
-                ctx.font = '12px Arial';
+                ctx.font = '400 12px Montserrat, sans-serif';
                 ctx.fillStyle = '#999999';
-                ctx.fillText(timestamp, exportCanvas.width / 2, exportCanvas.height - padding);
+                ctx.fillText(timestamp, cardWidth / 2, totalHeight - padding/2);
                 
-                // Convert to blob and download
-                exportCanvas.toBlob((blob) => {
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `selfie-fortune-${now.getTime()}.png`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }, 'image/png');
+                // Convert to blob
+                return new Promise((resolve) => {
+                    exportCanvas.toBlob((blob) => {
+                        fortuneImageBlob = blob;
+                        resolve(blob);
+                    }, 'image/png');
+                });
                 
             } catch (error) {
-                console.error('Error saving fortune:', error);
-                messageDiv.textContent = `${currentFortune}\n\n(Error saving: ${error.message})`;
+                console.error('Error creating fortune image:', error);
+                return null;
+            }
+        }
+        
+        // Helper function to wrap text
+        function wrapText(context, text, x, y, maxWidth, lineHeight) {
+            const words = text.split(' ');
+            let line = '';
+            let currentY = y - (lineHeight * (words.length / 3)); // Start higher based on approx text length
+            
+            for (let i = 0; i < words.length; i++) {
+                const testLine = line + words[i] + ' ';
+                const metrics = context.measureText(testLine);
+                
+                if (metrics.width > maxWidth && i > 0) {
+                    context.fillText(line, x, currentY);
+                    line = words[i] + ' ';
+                    currentY += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            context.fillText(line, x, currentY);
+        }
+        
+        // Save button functionality
+        saveButton.addEventListener('click', async () => {
+            if (!fortuneImageBlob) {
+                await generateFortuneImage();
+            }
+            
+            if (fortuneImageBlob) {
+                const url = URL.createObjectURL(fortuneImageBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'my-fortune-' + new Date().getTime() + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } else {
+                alert('Could not generate image to save');
             }
         });
+        
+        // Share button functionality
+        shareButton.addEventListener('click', () => {
+            shareModal.classList.remove('hidden');
+        });
+        
+        // Share modal close button
+        shareClose.addEventListener('click', () => {
+            shareModal.classList.add('hidden');
+        });
+        
+        // Share to WhatsApp
+        shareWhatsapp.addEventListener('click', async () => {
+            const textToShare = encodeURIComponent(`My fortune today: ${currentFortune}`);
+            const whatsappUrl = `https://wa.me/?text=${textToShare}`;
+            window.open(whatsappUrl, '_blank');
+            shareModal.classList.add('hidden');
+        });
+        
+        // Share to Twitter
+        shareTwitter.addEventListener('click', async () => {
+            const textToShare = encodeURIComponent(`My fortune today: ${currentFortune}`);
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${textToShare}`;
+            window.open(twitterUrl, '_blank');
+            shareModal.classList.add('hidden');
+        });
+        
+        // Share to Instagram (will just copy text to clipboard since direct sharing isn't possible)
+        shareInstagram.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(`My fortune today: ${currentFortune}`);
+                alert('Fortune copied to clipboard! You can paste it in your Instagram post.');
+                shareModal.classList.add('hidden');
+            } catch (err) {
+                alert('Could not copy text: ' + err);
+            }
+        });
+        
+        // Check for Web Share API support
+        if (navigator.share) {
+            const webShareBtn = document.createElement('div');
+            webShareBtn.classList.add('share-option');
+            webShareBtn.id = 'share-native';
+            webShareBtn.innerHTML = `
+                <div class="share-icon" style="background-color: #5E35B1;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M18,16.08C17.24,16.08 16.56,16.38 16.04,16.85L8.91,12.7C8.96,12.47 9,12.24 9,12C9,11.76 8.96,11.53 8.91,11.3L15.96,7.19C16.5,7.69 17.21,8 18,8A3,3 0 0,0 21,5A3,3 0 0,0 18,2A3,3 0 0,0 15,5C15,5.24 15.04,5.47 15.09,5.7L8.04,9.81C7.5,9.31 6.79,9 6,9A3,3 0 0,0 3,12A3,3 0 0,0 6,15C6.79,15 7.5,14.69 8.04,14.19L15.16,18.34C15.11,18.55 15.08,18.77 15.08,19C15.08,20.61 16.39,21.91 18,21.91C19.61,21.91 20.92,20.61 20.92,19A2.92,2.92 0 0,0 18,16.08Z"></path>
+                    </svg>
+                </div>
+                <span class="share-label">Share</span>
+            `;
+            
+            document.querySelector('.share-options').appendChild(webShareBtn);
+            
+            webShareBtn.addEventListener('click', async () => {
+                if (fortuneImageBlob) {
+                    try {
+                        const file = new File([fortuneImageBlob], 'my-fortune.png', { type: 'image/png' });
+                        await navigator.share({
+                            title: 'My Fortune Today',
+                            text: currentFortune,
+                            files: [file]
+                        });
+                        shareModal.classList.add('hidden');
+                    } catch (err) {
+                        console.error('Error sharing:', err);
+                        // Fallback to just sharing text
+                        try {
+                            await navigator.share({
+                                title: 'My Fortune Today',
+                                text: currentFortune
+                            });
+                            shareModal.classList.add('hidden');
+                        } catch (textErr) {
+                            console.error('Error sharing text:', textErr);
+                        }
+                    }
+                } else {
+                    try {
+                        await navigator.share({
+                            title: 'My Fortune Today',
+                            text: currentFortune
+                        });
+                        shareModal.classList.add('hidden');
+                    } catch (err) {
+                        console.error('Error sharing:', err);
+                    }
+                }
+            });
+        }
+        
+        // Initialize the app - check stored consent
+        function initApp() {
+            if (localStorage.getItem('selfieAppConsent') === 'true') {
+                userConsent = true;
+                consentModal.classList.add('hidden');
+            }
+        }
+        
+        // Run initialization
+        initApp();
     </script>
 </body>
 </html>
