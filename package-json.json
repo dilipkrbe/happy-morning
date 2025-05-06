@@ -1,0 +1,15 @@
+{
+  "name": "selfie-compliment-app",
+  "version": "1.0.0",
+  "description": "Web app that takes a selfie and generates a compliment using Google's Gemini API",
+  "main": "index.html",
+  "scripts": {
+    "start": "vercel dev",
+    "deploy": "vercel --prod"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "vercel": "^32.0.0"
+  }
+}
