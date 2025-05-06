@@ -213,7 +213,7 @@
     <div id="consent-modal" class="consent-modal">
         <div class="consent-content">
             <h2>Privacy Notice</h2>
-            <p>This app uses Google's Gemini API to analyze your selfie and generate a compliment.</p>
+            <p>This app uses Google's Gemini API.</p>
             <p>Your image will be sent to Google's servers for processing. While we don't store your images, 
                Google may use data from the free tier to improve their models.</p>
             <p>By clicking "I Agree", you consent to this processing.</p>
@@ -237,7 +237,7 @@
                 <span>Take Selfie</span>
             </button>
             <button id="analyze-btn" class="button" disabled>
-                <span>Get Compliment</span>
+                <span>Happy Morning</span>
             </button>
         </div>
         
@@ -246,7 +246,7 @@
     </div>
     
     <div id="message-container">
-        <div id="message">Take a selfie to receive a compliment!</div>
+        <div id="message">Take a selfie!</div>
     </div>
 
     <script>
@@ -319,7 +319,7 @@
                     analyzeBtn.disabled = false;
                     
                     // Reset message
-                    messageDiv.textContent = 'Looking good! Click "Get Compliment" to analyze your selfie.';
+                    messageDiv.textContent = 'Looking good! Click "Happy Morning".';
                 } catch (error) {
                     messageDiv.textContent = `Error loading image: ${error.message}`;
                 }
@@ -334,7 +334,7 @@
             }
             
             // Show loading indicator
-            messageDiv.innerHTML = '<div class="loading"><div class="spinner"></div><span>Analyzing your selfie...</span></div>';
+            messageDiv.innerHTML = '<div class="loading"><div class="spinner"></div><span>Observing your selfie...</span></div>';
             
             // Process image
             try {
@@ -385,7 +385,7 @@
                 
                 // For demonstration purposes, we'll show the direct API call
                 // In production, move this to a serverless function
-                const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=YOUR_API_KEY', {
+                const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyDzEeOVF-QXDHOSDl2l8rReUM1cuOzg6u4', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -394,7 +394,7 @@
                         contents: [{
                             parts: [
                                 {
-                                    text: 'Analyze this selfie and generate a flattering, motivating compliment based on visual features like facial expression, lighting, or background. Keep it brief and positive, focusing on one or two noticeable features. Make the person feel good about themselves!'
+                                    text: 'Analyze this selfie and generate a flattering, motivating compliment based on visual features like facial expression, lighting, or background. Keep it brief and positive, focusing on one or two noticeable features. Make the person feel good about themselves! Structure the message to follow the template of it-is-a-nice-day, I am happy, You have a good day'
                                 },
                                 {
                                     inlineData: {
@@ -418,7 +418,7 @@
                 return 'You look fantastic today!';
             } catch (error) {
                 console.error('Error analyzing selfie:', error);
-                return 'Unable to generate a compliment right now. But trust me, you look great!';
+                return 'Unable to generate right now. But trust me, you look great!';
             }
         }
     </script>
