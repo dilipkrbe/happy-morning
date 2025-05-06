@@ -18,9 +18,11 @@ export default async function handler(req, res) {
       ? imageData.split('base64,')[1] 
       : imageData;
     
+    const apiKey = process.env.GEMINI_API_KEY;
+
     // Call Gemini API
     const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + process.env.GEMINI_API_KEY,
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}',
       {
         method: 'POST',
         headers: {
