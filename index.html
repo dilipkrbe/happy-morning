@@ -722,13 +722,42 @@
             shareModal.classList.add('hidden');
         });
         
-        // Share to WhatsApp
-        shareWhatsapp.addEventListener('click', async () => {
-            const textToShare = encodeURIComponent(`My fortune today: ${currentFortune}`);
-            const whatsappUrl = `https://wa.me/?text=${textToShare}`;
+// Share to WhatsApp
+shareWhatsapp.addEventListener('click', async () => {
+    const textToShare = currentFortune; // Use the raw fortune text
+
+    // Check if Web Share API is supported and we have the image blob
+    if (navigator.share && fortuneImageBlob) {
+        try {
+            // Create a File object from the Blob
+            const file = new File([fortuneImageBlob], 'my-fortune.png', { type: 'image/png' });
+
+            // Attempt to share using Web Share API with the image file
+            await navigator.share({
+                title: 'My Selfie Fortune',
+                text: `Check out my fortune from my selfie:\n\n${textToShare}`,
+                files: [file] // Include the image file
+            });
+
+            // If sharing is successful, close the modal
+            shareModal.classList.add('hidden');
+
+        } catch (err) {
+            console.error('Error sharing via Web Share API:', err);
+            // Fallback to text-only share if Web Share API fails (e.g., user cancelled, or file sharing not supported to WhatsApp)
+            console.log('Falling back to text-only WhatsApp share.');
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`My fortune today: ${textToShare}\n\n${window.location.href}`)}`; // Include app link
             window.open(whatsappUrl, '_blank');
             shareModal.classList.add('hidden');
-        });
+        }
+    } else {
+        // If Web Share API is not supported or no image, fall back to text-only share
+        console.log('Web Share API not supported or no image. Falling back to text-only WhatsApp share.');
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`My fortune today: ${textToShare}\n\n${window.location.href}`)}`; // Include app link
+        window.open(whatsappUrl, '_blank');
+        shareModal.classList.add('hidden');
+    }
+});
         
         // Share to Twitter
         shareTwitter.addEventListener('click', async () => {
