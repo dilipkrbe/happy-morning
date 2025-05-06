@@ -648,7 +648,7 @@
                 
                 // Word wrap the text
                 const maxWidth = cardWidth - padding * 3;
-                wrapText(ctx, currentFortune, cardWidth/2, textY - 20, maxWidth, 28);
+                getWrappedLines(ctx, currentFortune, cardWidth/2, textY - 20, maxWidth, 28);
                 
                 // Add timestamp at the bottom
                 const now = new Date();
@@ -670,6 +670,128 @@
                 return null;
             }
         }
+
+        // Helper function to get wrapped lines and their total height
+function getWrappedLines(context, text, maxWidth, lineHeight) {
+    const words = text.split(' ');
+    let line = '';
+    const lines = [];
+    for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ' ';
+        const metrics = context.measureText(testLine);
+        if (metrics.width > maxWidth && i > 0) {
+            lines.push(line);
+            line = words[i] + ' ';
+        } else {
+            line = testLine;
+        }
+    }
+    lines.push(line); // Add the last line
+    return { lines, totalHeight: lines.length * lineHeight };
+}
+
+// Modify generateFortuneImage
+async function generateFortuneImage() {
+    if (!currentImageData || !currentFortune) {
+        return null;
+    }
+
+    try {
+        // Create a hidden canvas for the fortune card
+        const exportCanvas = document.createElement('canvas');
+        const ctx = exportCanvas.getContext('2d');
+
+        // Load the image
+        const img = new Image();
+        img.src = currentImageData;
+
+        await new Promise((resolve) => {
+            img.onload = resolve;
+        });
+
+        // Set canvas dimensions with consistent proportions
+        // Ensure minimum width for the text area looks good
+        const minCardWidth = 500; // Ensure text area has decent width
+        const cardWidth = Math.max(img.width + padding * 2, minCardWidth); // Add padding on sides, ensure min width
+        const imageHeight = img.height;
+        const padding = 30;
+        const borderWidth = 3;
+        const textAreaHeight = 180; // Fixed height for text area
+        const totalHeight = imageHeight + textAreaHeight + padding * 3; // Image + divider space + text area + bottom padding
+
+        exportCanvas.width = cardWidth;
+        exportCanvas.height = totalHeight;
+
+        // Fill canvas with white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, cardWidth, totalHeight);
+
+        // Draw a subtle border
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = borderWidth;
+        ctx.strokeRect(borderWidth/2, borderWidth/2, cardWidth - borderWidth, totalHeight - borderWidth);
+
+        // Draw image with proper centering horizontally
+        const imageX = (cardWidth - img.width) / 2;
+        ctx.drawImage(img, imageX, padding, img.width, img.height);
+
+        // Add a subtle divider
+        const dividerY = padding + imageHeight + padding/2;
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.beginPath();
+        ctx.moveTo(padding, dividerY);
+        ctx.lineTo(cardWidth - padding, dividerY);
+        ctx.stroke();
+
+        // --- Configure and Draw Text ---
+        const textX = cardWidth / 2; // Center horizontally
+        const textStartY = dividerY + padding; // Top edge of the text area
+        const textWidth = cardWidth - padding * 2; // Available width for text
+        const lineHeight = 28; // Line height for the text
+
+        ctx.fillStyle = '#333333';
+        ctx.textAlign = 'center';
+        // ctx.textBaseline = 'top'; // Draw from the top of the line
+        ctx.font = '600 22px Montserrat, sans-serif';
+
+        // Get wrapped lines and their total height
+        const { lines, totalHeight: actualTextHeight } = getWrappedLines(ctx, currentFortune, textWidth, lineHeight);
+
+        // Calculate the starting Y coordinate to vertically center the block of text within the text area
+        // The y argument for fillText is the baseline, so add lineHeight/2 to center the block
+        const startDrawingY = textStartY + (textAreaHeight - actualTextHeight) / 2 + lineHeight * 0.4; // Adjusted baseline offset
+
+        // Draw the lines
+        lines.forEach((line, index) => {
+            ctx.fillText(line, textX, startDrawingY + index * lineHeight);
+        });
+        // --- End Text Drawing ---
+
+        // Add timestamp at the bottom
+        const now = new Date();
+        const timestamp = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        ctx.font = '400 12px Montserrat, sans-serif';
+        ctx.fillStyle = '#999999';
+        ctx.fillText(timestamp, cardWidth / 2, totalHeight - padding/2); // Place timestamp near bottom edge
+
+        // Convert to blob
+        return new Promise((resolve) => {
+            // Use a slightly lower quality for smaller file size if needed, e.g., 0.9 or 0.8
+            exportCanvas.toBlob((blob) => {
+                fortuneImageBlob = blob;
+                resolve(blob);
+            }, 'image/png', 1.0); // Use PNG for better text clarity, or JPEG with high quality (e.g., 0.95)
+        });
+
+    } catch (error) {
+        console.error('Error creating fortune image:', error);
+        return null;
+    }
+}
+
+// Replace the existing wrapText function with the new getWrappedLines helper
+// and adjust the text drawing in generateFortuneImage as shown above.
+// You can remove the old wrapText function entirely.
         
         // Helper function to wrap text
         function wrapText(context, text, x, y, maxWidth, lineHeight) {
@@ -723,60 +845,144 @@
         });
         
 // Share to WhatsApp
+// Share to WhatsApp
 shareWhatsapp.addEventListener('click', async () => {
-    const textToShare = currentFortune; // Use the raw fortune text
+    const textToShare = `My fortune today:\n\n"${currentFortune}"\n\nGet yours here: ${window.location.href}`;
 
-    // Check if Web Share API is supported and we have the image blob
+    // Ensure the image is generated before attempting to share
+    if (!fortuneImageBlob) {
+         await generateFortuneImage();
+    }
+
+    // Check if Web Share API is supported AND we have the image blob
     if (navigator.share && fortuneImageBlob) {
         try {
             // Create a File object from the Blob
             const file = new File([fortuneImageBlob], 'my-fortune.png', { type: 'image/png' });
 
-            // Attempt to share using Web Share API with the image file
+            // Attempt to share using Web Share API with the image file and text
             await navigator.share({
                 title: 'My Selfie Fortune',
-                text: `Check out my fortune from my selfie:\n\n${textToShare}`,
+                text: textToShare,
                 files: [file] // Include the image file
             });
 
             // If sharing is successful, close the modal
+            console.log('Shared via Web Share API');
             shareModal.classList.add('hidden');
 
         } catch (err) {
             console.error('Error sharing via Web Share API:', err);
             // Fallback to text-only share if Web Share API fails (e.g., user cancelled, or file sharing not supported to WhatsApp)
             console.log('Falling back to text-only WhatsApp share.');
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`My fortune today: ${textToShare}\n\n${window.location.href}`)}`; // Include app link
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(textToShare)}`;
             window.open(whatsappUrl, '_blank');
             shareModal.classList.add('hidden');
         }
     } else {
         // If Web Share API is not supported or no image, fall back to text-only share
         console.log('Web Share API not supported or no image. Falling back to text-only WhatsApp share.');
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`My fortune today: ${textToShare}\n\n${window.location.href}`)}`; // Include app link
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(textToShare)}`;
         window.open(whatsappUrl, '_blank');
         shareModal.classList.add('hidden');
     }
 });
-        
-        // Share to Twitter
-        shareTwitter.addEventListener('click', async () => {
-            const textToShare = encodeURIComponent(`My fortune today: ${currentFortune}`);
-            const twitterUrl = `https://twitter.com/intent/tweet?text=${textToShare}`;
+
+// Share to Twitter
+shareTwitter.addEventListener('click', async () => {
+     const textToShare = `My fortune today:\n\n"${currentFortune}"\n\n#SelfieFortune ${window.location.href}`; // Added hashtag
+
+     // Ensure the image is generated before attempting to share
+     if (!fortuneImageBlob) {
+          await generateFortuneImage();
+     }
+
+    // Check if Web Share API is supported AND we have the image blob
+    if (navigator.share && fortuneImageBlob) {
+        try {
+            // Twitter intent URLs don't support files directly easily from client-side JS.
+            // Web Share API is the best chance for image + text on mobile.
+            const file = new File([fortuneImageBlob], 'my-fortune.png', { type: 'image/png' });
+
+            await navigator.share({
+                title: 'My Selfie Fortune',
+                text: textToShare,
+                files: [file]
+            });
+            console.log('Shared via Web Share API');
+
+        } catch (err) {
+            console.error('Error sharing via Web Share API:', err);
+            // Fallback to text-only share via Twitter intent
+            console.log('Falling back to text-only Twitter share.');
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(textToShare)}`;
             window.open(twitterUrl, '_blank');
-            shareModal.classList.add('hidden');
-        });
-        
-        // Share to Instagram (will just copy text to clipboard since direct sharing isn't possible)
-        shareInstagram.addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(`My fortune today: ${currentFortune}`);
-                alert('Fortune copied to clipboard! You can paste it in your Instagram post.');
-                shareModal.classList.add('hidden');
-            } catch (err) {
-                alert('Could not copy text: ' + err);
-            }
-        });
+        }
+    } else {
+         // Fallback to text-only share via Twitter intent
+        console.log('Web Share API not supported or no image. Falling back to text-only Twitter share.');
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(textToShare)}`;
+        window.open(twitterUrl, '_blank');
+    }
+     shareModal.classList.add('hidden'); // Close modal regardless
+});
+
+// Share to Instagram (Instagram's web/URL schemes are limited for sharing images directly)
+// Web Share API might work on some mobile browsers to open the native share sheet,
+// but direct sharing to Instagram Feed/Stories from web is restricted.
+// The most reliable fallback is still clipboard copy.
+shareInstagram.addEventListener('click', async () => {
+     const textToShare = `My fortune today:\n\n"${currentFortune}"\n\n#SelfieFortune ${window.location.href}`;
+
+     // Ensure the image is generated before attempting to share
+     if (!fortuneImageBlob) {
+          await generateFortuneImage();
+     }
+
+     if (navigator.share && fortuneImageBlob) {
+        try {
+             // Attempt Web Share API - might allow sharing the image file to Instagram (e.g., via Stories)
+             const file = new File([fortuneImageBlob], 'my-fortune.png', { type: 'image/png' });
+             await navigator.share({
+                 title: 'My Selfie Fortune',
+                 text: textToShare, // Text might not go with image on Instagram Share
+                 files: [file]
+             });
+             console.log('Shared via Web Share API (attempted image share)');
+
+        } catch (err) {
+             console.error('Error sharing via Web Share API:', err);
+             // Fallback to copying text if Web Share API fails
+             console.log('Falling back to clipboard copy.');
+             try {
+                 await navigator.clipboard.writeText(textToShare);
+                 alert('Fortune text and link copied to clipboard! You can paste it in your Instagram caption.');
+             } catch (clipboardErr) {
+                 console.error('Could not copy text:', clipboardErr);
+                 alert('Could not copy text to clipboard.');
+             }
+        }
+     } else {
+         // Fallback to copying text if Web Share API is not supported or no image
+         console.log('Web Share API not supported or no image. Falling back to clipboard copy.');
+         try {
+             await navigator.clipboard.writeText(textToShare);
+             alert('Fortune text and link copied to clipboard! You can paste it in your Instagram caption.');
+         } catch (clipboardErr) {
+             console.error('Could not copy text:', clipboardErr);
+             alert('Could not copy text to clipboard.');
+         }
+     }
+     shareModal.classList.add('hidden'); // Close modal regardless
+});
+
+
+// The generic Web Share API button logic you already have is good,
+// just ensure it also uses the files array if fortuneImageBlob exists.
+// The existing #share-native listener is already doing this.
+
+// Add the getWrappedLines helper function somewhere before generateFortuneImage
+// (or inside it if you prefer, but outside is cleaner).
         
         // Check for Web Share API support
         if (navigator.share) {
